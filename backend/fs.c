@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "fs.h"
 
 Node *createNode(char *name, int isFolder) {
@@ -59,4 +60,22 @@ int countChildren(Node *folder) {
         temp = temp->nextSibling;
     }
     return count;
+}
+
+// only letters, digits, space, dot, underscore and dash are allowed
+int isValidName(char *name) {
+    int len = (int)strlen(name);
+    if (len == 0 || len >= NAME_SIZE) {
+        return 0;
+    }
+    if (name[0] == ' ' || name[0] == '.') {
+        return 0;
+    }
+    for (int i = 0; i < len; i++) {
+        char c = name[i];
+        if (!isalnum((unsigned char)c) && c != ' ' && c != '.' && c != '_' && c != '-') {
+            return 0;
+        }
+    }
+    return 1;
 }
