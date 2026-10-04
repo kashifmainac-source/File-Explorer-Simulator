@@ -62,6 +62,19 @@ int countChildren(Node *folder) {
     return count;
 }
 
+// builds path like root/Documents/Notes by going up to root first
+void getPath(Node *node, char *path) {
+    if (node->parent == NULL) {
+        strcpy(path, node->name);
+        return;
+    }
+    getPath(node->parent, path);
+    if (strlen(path) + strlen(node->name) + 2 < PATH_SIZE) {
+        strcat(path, "/");
+        strcat(path, node->name);
+    }
+}
+
 // only letters, digits, space, dot, underscore and dash are allowed
 int isValidName(char *name) {
     int len = (int)strlen(name);

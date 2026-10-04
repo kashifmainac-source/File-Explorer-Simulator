@@ -17,6 +17,7 @@ Node *createNode(char *name, int isFolder);
 int addChild(Node *folder, Node *child);
 Node *findChild(Node *folder, char *name);
 int countChildren(Node *folder);
+void getPath(Node *node, char *path);
 int isValidName(char *name);
 
 #endif
