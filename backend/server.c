@@ -118,6 +118,30 @@ void makeItem(char *name, int isFolder, char *msg, int *ok) {
     sprintf(msg, "%s created", name);
 }
 
+void openFolder(char *name, char *msg, int *ok) {
+    Node *folder = findChild(current, name);
+    if (folder == NULL) {
+        strcpy(msg, "Not found");
+        *ok = 0;
+    } else if (!folder->isFolder) {
+        strcpy(msg, "That is a file, not a folder");
+        *ok = 0;
+    } else {
+        current = folder;
+        sprintf(msg, "Opened %s", name);
+    }
+}
+
+void goUp(char *msg, int *ok) {
+    if (current->parent == NULL) {
+        strcpy(msg, "Already at root");
+        *ok = 0;
+    } else {
+        current = current->parent;
+        strcpy(msg, "Moved up");
+    }
+}
+
 void sendResponse(SOCKET client, char *status, char *body) {
     char header[300];
     sprintf(header,
@@ -162,6 +186,10 @@ void handleRequest(SOCKET client, char *request) {
         makeItem(name, 1, msg, &ok);
     } else if (strcmp(route, "/touch") == 0) {
         makeItem(name, 0, msg, &ok);
+    } else if (strcmp(route, "/open") == 0) {
+        openFolder(name, msg, &ok);
+    } else if (strcmp(route, "/up") == 0) {
+        goUp(msg, &ok);
     } else {
         sendResponse(client, "404 Not Found", "{\"ok\":false,\"msg\":\"Unknown route\"}");
         return;
