@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Explorer Simulator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="window">
+        <div class="titlebar">File Explorer Simulator</div>
+
+        <div class="toolbar">
+            <button id="upBtn">&#8593; Up</button>
+            <div class="pathbar" id="pathbar">root</div>
+        </div>
+
+        <div class="actions">
+            <button id="newFolderBtn">+ New Folder</button>
+            <button id="newFileBtn">+ New File</button>
+        </div>
+
+        <div class="items" id="items"></div>
+
+        <div class="statusbar" id="status">Connecting to server...</div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
