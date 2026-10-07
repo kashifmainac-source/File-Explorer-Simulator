@@ -19,7 +19,25 @@ Node *createNode(char *name, int isFolder) {
     return newNode;
 }
 
-// adds child at the end of the folder's children list
+// returns negative if a should come before b
+// folders come first, then names in alphabetical order (ignoring case)
+int compareNodes(Node *a, Node *b) {
+    if (a->isFolder != b->isFolder) {
+        return b->isFolder - a->isFolder;
+    }
+    int i = 0;
+    while (a->name[i] != '\0' && b->name[i] != '\0') {
+        int x = tolower((unsigned char)a->name[i]);
+        int y = tolower((unsigned char)b->name[i]);
+        if (x != y) {
+            return x - y;
+        }
+        i++;
+    }
+    return (unsigned char)a->name[i] - (unsigned char)b->name[i];
+}
+
+// puts child at the right place in the folder's children list
 // returns 0 if same name already exists
 int addChild(Node *folder, Node *child) {
     if (findChild(folder, child->name) != NULL) {
@@ -28,15 +46,17 @@ int addChild(Node *folder, Node *child) {
 
     child->parent = folder;
 
-    if (folder->firstChild == NULL) {
+    if (folder->firstChild == NULL || compareNodes(child, folder->firstChild) < 0) {
+        child->nextSibling = folder->firstChild;
         folder->firstChild = child;
         return 1;
     }
 
     Node *temp = folder->firstChild;
-    while (temp->nextSibling != NULL) {
+    while (temp->nextSibling != NULL && compareNodes(temp->nextSibling, child) < 0) {
         temp = temp->nextSibling;
     }
+    child->nextSibling = temp->nextSibling;
     temp->nextSibling = child;
     return 1;
 }
