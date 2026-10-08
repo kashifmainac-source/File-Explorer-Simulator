@@ -7,9 +7,36 @@
 #define PORT 8080
 #define BUFFER_SIZE 4096
 #define BODY_SIZE 10000
+#define STACK_SIZE 50
 
 Node *root;
 Node *current;
+
+// back and forward history, each is a stack of folders
+Node *backStack[STACK_SIZE];
+int backTop = 0;
+Node *forwardStack[STACK_SIZE];
+int forwardTop = 0;
+
+void push(Node **stack, int *top, Node *folder) {
+    if (*top == STACK_SIZE) {
+        // stack full, throw away the oldest entry
+        for (int i = 1; i < STACK_SIZE; i++) {
+            stack[i - 1] = stack[i];
+        }
+        (*top)--;
+    }
+    stack[*top] = folder;
+    (*top)++;
+}
+
+Node *pop(Node **stack, int *top) {
+    if (*top == 0) {
+        return NULL;
+    }
+    (*top)--;
+    return stack[*top];
+}
 
 void setupDefaultFolders() {
     root = createNode("root", 1);
@@ -127,6 +154,8 @@ void openFolder(char *name, char *msg, int *ok) {
         strcpy(msg, "That is a file, not a folder");
         *ok = 0;
     } else {
+        push(backStack, &backTop, current);
+        forwardTop = 0;
         current = folder;
         sprintf(msg, "Opened %s", name);
     }
@@ -137,9 +166,35 @@ void goUp(char *msg, int *ok) {
         strcpy(msg, "Already at root");
         *ok = 0;
     } else {
+        push(backStack, &backTop, current);
+        forwardTop = 0;
         current = current->parent;
         strcpy(msg, "Moved up");
     }
+}
+
+void goBack(char *msg, int *ok) {
+    Node *folder = pop(backStack, &backTop);
+    if (folder == NULL) {
+        strcpy(msg, "Nothing to go back to");
+        *ok = 0;
+        return;
+    }
+    push(forwardStack, &forwardTop, current);
+    current = folder;
+    strcpy(msg, "Went back");
+}
+
+void goForward(char *msg, int *ok) {
+    Node *folder = pop(forwardStack, &forwardTop);
+    if (folder == NULL) {
+        strcpy(msg, "Nothing to go forward to");
+        *ok = 0;
+        return;
+    }
+    push(backStack, &backTop, current);
+    current = folder;
+    strcpy(msg, "Went forward");
 }
 
 void sendResponse(SOCKET client, char *status, char *body) {
