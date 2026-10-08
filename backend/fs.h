@@ -19,5 +19,8 @@ Node *findChild(Node *folder, char *name);
 int countChildren(Node *folder);
 void getPath(Node *node, char *path);
 int isValidName(char *name);
+void freeSubtree(Node *node);
+int deleteChild(Node *folder, char *name);
+int renameChild(Node *folder, char *oldName, char *newName);
 
 #endif

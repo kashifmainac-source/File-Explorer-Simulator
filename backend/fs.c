@@ -112,3 +112,68 @@ int isValidName(char *name) {
     }
     return 1;
 }
+
+// frees the node and everything inside it
+void freeSubtree(Node *node) {
+    Node *child = node->firstChild;
+    while (child != NULL) {
+        Node *next = child->nextSibling;
+        freeSubtree(child);
+        child = next;
+    }
+    free(node);
+}
+
+// takes the node out of the folder's list without freeing it
+Node *unlinkChild(Node *folder, char *name) {
+    Node *prev = NULL;
+    Node *temp = folder->firstChild;
+    while (temp != NULL && strcmp(temp->name, name) != 0) {
+        prev = temp;
+        temp = temp->nextSibling;
+    }
+    if (temp == NULL) {
+        return NULL;
+    }
+    if (prev == NULL) {
+        folder->firstChild = temp->nextSibling;
+    } else {
+        prev->nextSibling = temp->nextSibling;
+    }
+    temp->nextSibling = NULL;
+    return temp;
+}
+
+// returns 0 if there is no such item
+int deleteChild(Node *folder, char *name) {
+    Node *node = unlinkChild(folder, name);
+    if (node == NULL) {
+        return 0;
+    }
+    freeSubtree(node);
+    return 1;
+}
+
+// returns 1 on success, 0 if not found, -1 if new name is invalid, -2 if new name is taken
+int renameChild(Node *folder, char *oldName, char *newName) {
+    Node *node = findChild(folder, oldName);
+    if (node == NULL) {
+        return 0;
+    }
+    if (!isValidName(newName)) {
+        return -1;
+    }
+    if (strcmp(oldName, newName) == 0) {
+        return 1;
+    }
+    if (findChild(folder, newName) != NULL) {
+        return -2;
+    }
+
+    // take it out, change the name and put it back so the order stays correct
+    unlinkChild(folder, oldName);
+    strncpy(node->name, newName, NAME_SIZE - 1);
+    node->name[NAME_SIZE - 1] = '\0';
+    addChild(folder, node);
+    return 1;
+}
