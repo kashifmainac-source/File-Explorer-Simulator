@@ -78,16 +78,30 @@ void urlDecode(char *src, char *dest) {
     dest[j] = '\0';
 }
 
-// takes value of name=... from query string
-void getNameParam(char *query, char *name) {
+// takes value of key=... from query string, for example key "name" or "newname"
+void getParam(char *query, char *key, char *value) {
     char raw[100] = "";
-    name[0] = '\0';
+    char search[30];
+    value[0] = '\0';
 
-    char *start = strstr(query, "name=");
+    sprintf(search, "%s=", key);
+    int keyLen = (int)strlen(search);
+
+    // key must be at the start or right after an &, so "name" does not match "newname"
+    char *start = query;
+    while (start != NULL) {
+        if (strncmp(start, search, keyLen) == 0) {
+            break;
+        }
+        start = strchr(start, '&');
+        if (start != NULL) {
+            start++;
+        }
+    }
     if (start == NULL) {
         return;
     }
-    start += 5;
+    start += keyLen;
 
     int i = 0;
     while (start[i] != '\0' && start[i] != '&' && i < 99) {
@@ -95,7 +109,7 @@ void getNameParam(char *query, char *name) {
         i++;
     }
     raw[i] = '\0';
-    urlDecode(raw, name);
+    urlDecode(raw, value);
 }
 
 // makes the JSON that frontend reads
@@ -197,6 +211,34 @@ void goForward(char *msg, int *ok) {
     strcpy(msg, "Went forward");
 }
 
+void deleteItem(char *name, char *msg, int *ok) {
+    if (!deleteChild(current, name)) {
+        strcpy(msg, "Not found");
+        *ok = 0;
+        return;
+    }
+    // history may point to folders that are now freed, so clear it
+    backTop = 0;
+    forwardTop = 0;
+    sprintf(msg, "%s deleted", name);
+}
+
+void renameItem(char *name, char *newName, char *msg, int *ok) {
+    int result = renameChild(current, name, newName);
+    if (result == 1) {
+        sprintf(msg, "Renamed to %s", newName);
+        return;
+    }
+    *ok = 0;
+    if (result == 0) {
+        strcpy(msg, "Not found");
+    } else if (result == -1) {
+        strcpy(msg, "Invalid name");
+    } else {
+        sprintf(msg, "%s already exists", newName);
+    }
+}
+
 void sendResponse(SOCKET client, char *status, char *body) {
     char header[300];
     sprintf(header,
@@ -213,7 +255,7 @@ void sendResponse(SOCKET client, char *status, char *body) {
 void handleRequest(SOCKET client, char *request) {
     char method[10], url[300];
     char route[100], query[200] = "";
-    char name[100];
+    char name[100], newName[100];
     char msg[150] = "OK";
     char body[BODY_SIZE];
     int ok = 1;
@@ -233,7 +275,8 @@ void handleRequest(SOCKET client, char *request) {
     strncpy(route, url, 99);
     route[99] = '\0';
 
-    getNameParam(query, name);
+    getParam(query, "name", name);
+    getParam(query, "newname", newName);
 
     if (strcmp(route, "/list") == 0) {
         // nothing to do, just send current folder
@@ -245,6 +288,14 @@ void handleRequest(SOCKET client, char *request) {
         openFolder(name, msg, &ok);
     } else if (strcmp(route, "/up") == 0) {
         goUp(msg, &ok);
+    } else if (strcmp(route, "/back") == 0) {
+        goBack(msg, &ok);
+    } else if (strcmp(route, "/forward") == 0) {
+        goForward(msg, &ok);
+    } else if (strcmp(route, "/delete") == 0) {
+        deleteItem(name, msg, &ok);
+    } else if (strcmp(route, "/rename") == 0) {
+        renameItem(name, newName, msg, &ok);
     } else {
         sendResponse(client, "404 Not Found", "{\"ok\":false,\"msg\":\"Unknown route\"}");
         return;
