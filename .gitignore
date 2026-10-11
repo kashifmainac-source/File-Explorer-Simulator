@@ -1,4 +1,5 @@
 *.exe
+!server.exe
 *.obj
 *.o
 PLAN.md
