@@ -108,3 +108,21 @@ button:hover {
 .statusbar.error {
     color: #c0392b;
 }
+
+.menu {
+    display: none;
+    position: fixed;
+    background: white;
+    border: 1px solid #aaa;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+    min-width: 110px;
+}
+
+.menu div {
+    padding: 7px 14px;
+    cursor: pointer;
+}
+
+.menu div:hover {
+    background: #e0e8f5;
+}
