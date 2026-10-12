@@ -7,6 +7,7 @@
 #define PORT 8080
 #define BUFFER_SIZE 4096
 #define BODY_SIZE 10000
+#define TREE_SIZE 20000
 #define STACK_SIZE 50
 
 Node *root;
@@ -110,6 +111,28 @@ void getParam(char *query, char *key, char *value) {
     }
     raw[i] = '\0';
     urlDecode(raw, value);
+}
+
+// adds the folders under this node to out as nested json, files are not shown in the tree
+void buildTree(Node *node, char *out) {
+    char part[100];
+    sprintf(part, "{\"name\":\"%s\",\"children\":[", node->name);
+    strcat(out, part);
+
+    Node *temp = node->firstChild;
+    int first = 1;
+    while (temp != NULL) {
+        // keep some space free so the brackets can still be closed
+        if (temp->isFolder && strlen(out) + 200 < TREE_SIZE) {
+            if (!first) {
+                strcat(out, ",");
+            }
+            first = 0;
+            buildTree(temp, out);
+        }
+        temp = temp->nextSibling;
+    }
+    strcat(out, "]}");
 }
 
 // makes the JSON that frontend reads
