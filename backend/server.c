@@ -6,7 +6,7 @@
 
 #define PORT 8080
 #define BUFFER_SIZE 4096
-#define BODY_SIZE 10000
+#define BODY_SIZE 40000
 #define TREE_SIZE 20000
 #define STACK_SIZE 50
 
@@ -139,10 +139,12 @@ void buildTree(Node *node, char *out) {
 void buildResponse(int ok, char *msg, char *body) {
     char path[PATH_SIZE];
     char item[150];
+    char tree[TREE_SIZE] = "";
 
     getPath(current, path);
-    sprintf(body, "{\"ok\":%s,\"msg\":\"%s\",\"path\":\"%s\",\"items\":[",
-            ok ? "true" : "false", msg, path);
+    buildTree(root, tree);
+    sprintf(body, "{\"ok\":%s,\"msg\":\"%s\",\"path\":\"%s\",\"tree\":%s,\"items\":[",
+            ok ? "true" : "false", msg, path, tree);
 
     Node *temp = current->firstChild;
     while (temp != NULL) {
