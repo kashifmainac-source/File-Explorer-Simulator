@@ -80,8 +80,8 @@ void urlDecode(char *src, char *dest) {
 }
 
 // takes value of key=... from query string, for example key "name" or "newname"
-void getParam(char *query, char *key, char *value) {
-    char raw[100] = "";
+void getParam(char *query, char *key, char *value, int maxLen) {
+    char raw[PATH_SIZE] = "";
     char search[30];
     value[0] = '\0';
 
@@ -105,7 +105,7 @@ void getParam(char *query, char *key, char *value) {
     start += keyLen;
 
     int i = 0;
-    while (start[i] != '\0' && start[i] != '&' && i < 99) {
+    while (start[i] != '\0' && start[i] != '&' && i < maxLen - 1) {
         raw[i] = start[i];
         i++;
     }
@@ -278,14 +278,14 @@ void sendResponse(SOCKET client, char *status, char *body) {
 }
 
 void handleRequest(SOCKET client, char *request) {
-    char method[10], url[300];
-    char route[100], query[200] = "";
-    char name[100], newName[100];
+    char method[10], url[800];
+    char route[100], query[700] = "";
+    char name[100], newName[100], path[PATH_SIZE];
     char msg[150] = "OK";
     char body[BODY_SIZE];
     int ok = 1;
 
-    if (sscanf(request, "%9s %299s", method, url) != 2) {
+    if (sscanf(request, "%9s %799s", method, url) != 2) {
         return;
     }
     printf("%s %s\n", method, url);
@@ -294,14 +294,15 @@ void handleRequest(SOCKET client, char *request) {
     char *q = strchr(url, '?');
     if (q != NULL) {
         *q = '\0';
-        strncpy(query, q + 1, 199);
-        query[199] = '\0';
+        strncpy(query, q + 1, 699);
+        query[699] = '\0';
     }
     strncpy(route, url, 99);
     route[99] = '\0';
 
-    getParam(query, "name", name);
-    getParam(query, "newname", newName);
+    getParam(query, "name", name, 100);
+    getParam(query, "newname", newName, 100);
+    getParam(query, "path", path, PATH_SIZE);
 
     if (strcmp(route, "/list") == 0) {
         // nothing to do, just send current folder
