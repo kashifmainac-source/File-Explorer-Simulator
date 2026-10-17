@@ -11,9 +11,15 @@
         <div class="titlebar">File Explorer Simulator</div>
 
         <div class="toolbar">
-            <button id="backBtn">&#8592; Back</button>
-            <button id="forwardBtn">Forward &#8594;</button>
-            <button id="upBtn">&#8593; Up</button>
+            <button class="navbtn" id="backBtn" title="Back">
+                <svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+            </button>
+            <button class="navbtn" id="forwardBtn" title="Forward">
+                <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </button>
+            <button class="navbtn" id="upBtn" title="Up">
+                <svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
+            </button>
             <div class="pathbar" id="pathbar">root</div>
         </div>
 
