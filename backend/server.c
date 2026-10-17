@@ -200,6 +200,38 @@ void openFolder(char *name, char *msg, int *ok) {
     }
 }
 
+// jumps to a folder given by full path like root/Documents/College
+void gotoFolder(char *path, char *msg, int *ok) {
+    char copy[PATH_SIZE];
+    strcpy(copy, path);
+
+    char *part = strtok(copy, "/");
+    if (part == NULL || strcmp(part, root->name) != 0) {
+        strcpy(msg, "Invalid path");
+        *ok = 0;
+        return;
+    }
+
+    Node *folder = root;
+    part = strtok(NULL, "/");
+    while (part != NULL) {
+        folder = findChild(folder, part);
+        if (folder == NULL || !folder->isFolder) {
+            strcpy(msg, "Folder not found");
+            *ok = 0;
+            return;
+        }
+        part = strtok(NULL, "/");
+    }
+
+    if (folder != current) {
+        push(backStack, &backTop, current);
+        forwardTop = 0;
+        current = folder;
+    }
+    strcpy(msg, "Opened folder");
+}
+
 void goUp(char *msg, int *ok) {
     if (current->parent == NULL) {
         strcpy(msg, "Already at root");
@@ -312,6 +344,8 @@ void handleRequest(SOCKET client, char *request) {
         makeItem(name, 0, msg, &ok);
     } else if (strcmp(route, "/open") == 0) {
         openFolder(name, msg, &ok);
+    } else if (strcmp(route, "/goto") == 0) {
+        gotoFolder(path, msg, &ok);
     } else if (strcmp(route, "/up") == 0) {
         goUp(msg, &ok);
     } else if (strcmp(route, "/back") == 0) {
