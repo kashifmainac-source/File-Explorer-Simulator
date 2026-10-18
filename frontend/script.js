@@ -12,7 +12,6 @@ let menuItem = "";
 // paths of the folders that are open in the tree view
 const expanded = { "root": true };
 
-
 async function callServer(route, name, newName, path) {
     let url = API + route + "?x=1";
     if (name) {
@@ -70,11 +69,10 @@ function showFolder(data) {
 
         div.oncontextmenu = function (e) {
             e.preventDefault();
+            e.stopPropagation();
             div.click();
             menuItem = item.name;
-            menu.style.left = e.clientX + "px";
-            menu.style.top = e.clientY + "px";
-            menu.style.display = "block";
+            showMenu(e, true);
         };
 
         if (item.type === "folder") {
@@ -130,12 +128,38 @@ function drawTree(node, path, currentPath, parentDiv) {
     }
 }
 
+// onItem is true when an item was right clicked, false for empty space
+function showMenu(e, onItem) {
+    document.getElementById("newFolderOption").style.display = onItem ? "none" : "block";
+    document.getElementById("newFileOption").style.display = onItem ? "none" : "block";
+    document.getElementById("renameOption").style.display = onItem ? "block" : "none";
+    document.getElementById("deleteOption").style.display = onItem ? "block" : "none";
+
+    menu.style.left = e.clientX + "px";
+    menu.style.top = e.clientY + "px";
+    menu.style.display = "block";
+}
+
 function setStatus(text, isError) {
     statusBar.textContent = text;
     if (isError) {
         statusBar.classList.add("error");
     } else {
         statusBar.classList.remove("error");
+    }
+}
+
+function newFolder() {
+    const name = prompt("Enter folder name:");
+    if (name) {
+        callServer("/mkdir", name.trim());
+    }
+}
+
+function newFile() {
+    const name = prompt("Enter file name:");
+    if (name) {
+        callServer("/touch", name.trim());
     }
 }
 
@@ -151,19 +175,10 @@ document.getElementById("upBtn").onclick = function () {
     callServer("/up");
 };
 
-document.getElementById("newFolderBtn").onclick = function () {
-    const name = prompt("Enter folder name:");
-    if (name) {
-        callServer("/mkdir", name.trim());
-    }
-};
-
-document.getElementById("newFileBtn").onclick = function () {
-    const name = prompt("Enter file name:");
-    if (name) {
-        callServer("/touch", name.trim());
-    }
-};
+document.getElementById("newFolderBtn").onclick = newFolder;
+document.getElementById("newFileBtn").onclick = newFile;
+document.getElementById("newFolderOption").onclick = newFolder;
+document.getElementById("newFileOption").onclick = newFile;
 
 document.getElementById("renameOption").onclick = function () {
     const newName = prompt("Enter new name:", menuItem);
@@ -176,6 +191,13 @@ document.getElementById("deleteOption").onclick = function () {
     if (confirm("Delete " + menuItem + "? This cannot be undone.")) {
         callServer("/delete", menuItem);
     }
+};
+
+// right click on empty space of the folder
+itemsDiv.oncontextmenu = function (e) {
+    e.preventDefault();
+    document.querySelectorAll(".item").forEach(d => d.classList.remove("selected"));
+    showMenu(e, false);
 };
 
 // hide the menu on any click, the option handlers above run first
