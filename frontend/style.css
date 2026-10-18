@@ -93,6 +93,51 @@ button:hover {
     stroke-linejoin: round;
 }
 
+.main {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+}
+
+.sidebar {
+    width: 240px;
+    padding: 10px 6px;
+    overflow: auto;
+    background: #f7f8fb;
+    border-right: 1px solid #e3e7ee;
+    font-size: 14px;
+    user-select: none;
+}
+
+.treerow {
+    display: flex;
+    align-items: center;
+    padding: 4px 6px;
+    border-radius: 5px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.treerow:hover {
+    background: #e8eef8;
+}
+
+.treerow.current {
+    background: #cfe0f5;
+    font-weight: 600;
+}
+
+.arrow {
+    width: 16px;
+    text-align: center;
+    font-size: 10px;
+    color: #6b7385;
+}
+
+.treechildren {
+    margin-left: 14px;
+}
+
 .items {
     flex: 1;
     display: flex;

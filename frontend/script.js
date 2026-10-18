@@ -4,17 +4,25 @@ const itemsDiv = document.getElementById("items");
 const pathbar = document.getElementById("pathbar");
 const statusBar = document.getElementById("status");
 const menu = document.getElementById("menu");
+const treeDiv = document.getElementById("tree");
 
 // item that was right clicked
 let menuItem = "";
 
-async function callServer(route, name, newName) {
-    let url = API + route;
+// paths of the folders that are open in the tree view
+const expanded = { "root": true };
+
+
+async function callServer(route, name, newName, path) {
+    let url = API + route + "?x=1";
     if (name) {
-        url += "?name=" + encodeURIComponent(name);
+        url += "&name=" + encodeURIComponent(name);
     }
     if (newName) {
         url += "&newname=" + encodeURIComponent(newName);
+    }
+    if (path) {
+        url += "&path=" + encodeURIComponent(path);
     }
 
     try {
@@ -29,6 +37,16 @@ async function callServer(route, name, newName) {
 function showFolder(data) {
     pathbar.textContent = data.path;
     setStatus(data.msg + "  |  " + data.items.length + " item(s)", !data.ok);
+
+    // open all the parents of the current folder in the tree
+    const parts = data.path.split("/");
+    let p = "";
+    for (let i = 0; i < parts.length; i++) {
+        p = i === 0 ? parts[0] : p + "/" + parts[i];
+        expanded[p] = true;
+    }
+    treeDiv.innerHTML = "";
+    drawTree(data.tree, data.tree.name, data.path, treeDiv);
 
     itemsDiv.innerHTML = "";
 
@@ -66,6 +84,49 @@ function showFolder(data) {
         }
 
         itemsDiv.appendChild(div);
+    }
+}
+
+// draws one folder of the tree and then its sub folders
+function drawTree(node, path, currentPath, parentDiv) {
+    const row = document.createElement("div");
+    row.className = "treerow";
+    if (path === currentPath) {
+        row.classList.add("current");
+    }
+
+    const hasChildren = node.children.length > 0;
+    const isOpen = expanded[path] === true;
+
+    const arrow = document.createElement("span");
+    arrow.className = "arrow";
+    if (hasChildren) {
+        arrow.textContent = isOpen ? "▼" : "▶";
+    }
+    row.appendChild(arrow);
+
+    const label = document.createElement("span");
+    label.textContent = "📁 " + node.name;
+    row.appendChild(label);
+
+    // arrow only opens/closes, clicking the name goes into the folder
+    arrow.onclick = function (e) {
+        e.stopPropagation();
+        expanded[path] = !isOpen;
+        callServer("/list");
+    };
+    row.onclick = function () {
+        callServer("/goto", null, null, path);
+    };
+    parentDiv.appendChild(row);
+
+    if (hasChildren && isOpen) {
+        const childDiv = document.createElement("div");
+        childDiv.className = "treechildren";
+        for (const child of node.children) {
+            drawTree(child, path + "/" + child.name, currentPath, childDiv);
+        }
+        parentDiv.appendChild(childDiv);
     }
 }
 
